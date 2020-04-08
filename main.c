@@ -99,16 +99,7 @@ void createProg(GLuint *shaders, int len) {
     }
 }
 
-void createBuffer() {
-    float vertices[] = {
-        -1.0f, -1.0f, 0.0f,
-         1.0f, -1.0f, 0.0f,
-         0.0f,  1.0f, 0.0f
-    };
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-}
+void createBuffer();
 
 void init() {
     createBuffer();
@@ -123,6 +114,17 @@ void init() {
     for (; i < len; i++) {
         glDeleteShader(shaders[i]);
     }
+}
+
+void createBuffer() {
+    float vertices[] = {
+        -1.0f, -1.0f, 0.0f,
+         1.0f, -1.0f, 0.0f,
+         0.0f,  1.0f, 0.0f
+    };
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 }
 
 void display() {
