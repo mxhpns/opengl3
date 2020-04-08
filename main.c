@@ -2,9 +2,11 @@
 #include <GL/freeglut.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 GLuint prog;
 GLuint vbo;
+GLuint offsetLoc;
 
 char *readFile(const char *fileName) {
     FILE *f = fopen(fileName, "rb");
@@ -101,6 +103,10 @@ void createProg(GLuint *shaders, int len) {
 
 void createBuffer();
 
+void setUniformLocations() {
+    offsetLoc = glGetUniformLocation(prog, "_offset");
+}
+
 void init() {
     createBuffer();
 
@@ -114,32 +120,62 @@ void init() {
     for (; i < len; i++) {
         glDeleteShader(shaders[i]);
     }
+
+    setUniformLocations();
 }
 
 void createBuffer() {
     float vertices[] = {
         -1.0f, -1.0f, 0.0f,
          1.0f, -1.0f, 0.0f,
-         0.0f,  1.0f, 0.0f
+         0.0f,  1.0f, 0.0f,
+        -0.5f,  1.0f, 0.0f,
+        -1.0f,  0.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+
+         1.0f, 0.0f, 0.0f,
+         0.0f, 1.0f, 0.0f,
+         0.0f, 0.0f, 1.0f,
+         1.0f, 1.0f, 0.0f,
+         0.0f, 1.0f, 1.0f,
+         1.0f, 0.0f, 1.0f
     };
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 }
 
+void computeOffsets(float *x, float *y) {
+    float loopDuration = 5.0f;
+    float radius = 0.5f;
+    float timeElapsed = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+    float angle = fmodf(timeElapsed, loopDuration) / loopDuration * 2.0f * 3.14159f;
+    *x = cosf(angle) * radius;
+    *y = sinf(angle) * radius;
+}
+
 void display() {
-    glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
+    float x, y;
+    computeOffsets(&x, &y);
+
+    glClearColor(1.0f, 1.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(prog);
 
+    glUniform2f(offsetLoc, x, y);
+
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*) (36*2));
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 
     glUseProgram(0);
     glutSwapBuffers();
+    glutPostRedisplay();
 }
 
 int main(int argc, char *argv[]) {
